@@ -177,17 +177,19 @@ export default function Hero() {
 
       <MobileMenu open={menuOpen} onNavigate={handleNavigate} />
 
+      {/* Pozadí je záměrně jiný záběr než video — traktor patří jen do
+          rozbalovacího okna, na pozadí zůstává klidná krajina. */}
       <ScrollExpandMedia
         mediaType="video"
         mediaSrc="media/hero.mp4"
         posterSrc="media/hero-poster.jpg"
-        bgImageSrc="media/hero-poster.jpg"
+        bgImageSrc="media/hero-bg.jpg"
         title="Krásné Loučky"
         date="Rodinná farma"
         scrollToExpand="Posouváním rozehrajete video"
         scrubOnScroll
       >
-        <div className="mx-auto flex min-h-[40vh] w-full max-w-2xl flex-col items-center justify-center text-center">
+        <div className="mx-auto flex w-full max-w-2xl flex-col items-center justify-center text-center">
           <h1 className="font-instrument-serif text-3xl leading-tight text-wheat md:text-4xl">
             Již více jak 30 let hospodaříme{' '}
             <em className="italic">v naší krásné přírodě</em>
