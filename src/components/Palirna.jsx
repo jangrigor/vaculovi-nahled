@@ -7,14 +7,45 @@ const PALIRNA = { name: 'Josef Vojkůvka', phone: '+420 733 531 233' }
 // kreslený do canvasu) odhaluje druhý obrázek — průřez, co se děje uvnitř.
 // Na dotykových zařízeních (bez kurzoru) putuje reflektor po kotli podle scrollu.
 
-// Rozměr zdrojových obrázků. Průřez vznikl jako úprava základního snímku,
-// takže oba sedí 1:1 — žádná kompenzace posunu není potřeba. Kdyby se
-// obrázky někdy vyměnily za nesouhlasný pár, dá se doladit přes ALIGN.
-const IMG_W = 2000
-const IMG_H = 1116
+// Sekce je vysoká 100svh a fotka se roztahuje přes cover — na širokém displeji
+// sedí záběr na šířku, na mobilu by se z něj ale vyřízl jen úzký svislý pruh
+// a kotel by zůstal mimo obraz. Pro úzké displeje proto existuje vlastní
+// záběr na výšku. Průřez v obou párech vznikl jako úprava základního snímku,
+// takže sedí 1:1 — žádná kompenzace posunu není potřeba. Kdyby se obrázky
+// někdy vyměnily za nesouhlasný pár, dá se doladit přes ALIGN.
+const SOURCES = {
+  wide: {
+    base: 'media/palirna-base.jpg',
+    reveal: 'media/palirna-reveal.jpg',
+    w: 2000,
+    h: 1116,
+  },
+  portrait: {
+    base: 'media/palirna-base-mobil.jpg',
+    reveal: 'media/palirna-reveal-mobil.jpg',
+    w: 1120,
+    h: 2006,
+  },
+}
+const PORTRAIT_QUERY = '(max-width: 767px)'
 const ALIGN = { dx: 0, dy: 0, scale: 1 }
 
-function RevealLayer({ image, cursorX, cursorY }) {
+function useSource() {
+  const [portrait, setPortrait] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(PORTRAIT_QUERY).matches
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia(PORTRAIT_QUERY)
+    const onChange = (e) => setPortrait(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  return portrait ? SOURCES.portrait : SOURCES.wide
+}
+
+function RevealLayer({ image, imgW, imgH, cursorX, cursorY }) {
   const canvasRef = useRef(null)
   const imgRef = useRef(null)
   const [imgReady, setImgReady] = useState(false)
@@ -62,10 +93,10 @@ function RevealLayer({ image, cursorX, cursorY }) {
     if (cursorX < -radius || cursorY < -radius) return
 
     // Cover mapování + kompenzace zarovnání (scale kolem středu, pak posun)
-    const coverScale = Math.max(w / IMG_W, h / IMG_H)
+    const coverScale = Math.max(w / imgW, h / imgH)
     const drawScale = coverScale * ALIGN.scale
-    const drawW = IMG_W * drawScale
-    const drawH = IMG_H * drawScale
+    const drawW = imgW * drawScale
+    const drawH = imgH * drawScale
     const dx = (w - drawW) / 2 + ALIGN.dx * coverScale
     const dy = (h - drawH) / 2 + ALIGN.dy * coverScale
 
@@ -84,7 +115,7 @@ function RevealLayer({ image, cursorX, cursorY }) {
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, w, h)
     ctx.restore()
-  }, [cursorX, cursorY, imgReady, size])
+  }, [cursorX, cursorY, imgReady, size, imgW, imgH])
 
   return (
     <canvas
@@ -100,6 +131,7 @@ export default function Palirna() {
   const smooth = useRef({ x: -999, y: -999 })
   const loopRef = useRef(null)
   const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 })
+  const source = useSource()
 
   useEffect(() => {
     const section = sectionRef.current
@@ -168,10 +200,16 @@ export default function Palirna() {
     >
       <div
         className="absolute inset-0 z-10 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(media/palirna-base.jpg)' }}
+        style={{ backgroundImage: `url(${source.base})` }}
       />
 
-      <RevealLayer image="media/palirna-reveal.jpg" cursorX={cursorPos.x} cursorY={cursorPos.y} />
+      <RevealLayer
+        image={source.reveal}
+        imgW={source.w}
+        imgH={source.h}
+        cursorX={cursorPos.x}
+        cursorY={cursorPos.y}
+      />
 
       <div className="pointer-events-none absolute inset-x-0 top-[12%] z-50 flex flex-col items-center px-5 text-center">
         <h2 className="leading-[0.95] text-wheat">
