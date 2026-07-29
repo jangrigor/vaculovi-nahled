@@ -7,11 +7,12 @@ const PALIRNA = { name: 'Josef Vojkůvka', phone: '+420 733 531 233' }
 // kreslený do canvasu) odhaluje druhý obrázek — průřez, co se děje uvnitř.
 // Na dotykových zařízeních (bez kurzoru) putuje reflektor po kotli podle scrollu.
 
-// Rozměr zdrojových obrázků a změřené zarovnání průřezu vůči základu
-// (průřez je ~2 % větší a posunutý — kompenzuje se transformací za běhu).
-const IMG_W = 1672
-const IMG_H = 941
-const ALIGN = { dx: 56, dy: -4, scale: 0.98 }
+// Rozměr zdrojových obrázků. Průřez vznikl jako úprava základního snímku,
+// takže oba sedí 1:1 — žádná kompenzace posunu není potřeba. Kdyby se
+// obrázky někdy vyměnily za nesouhlasný pár, dá se doladit přes ALIGN.
+const IMG_W = 2000
+const IMG_H = 1116
+const ALIGN = { dx: 0, dy: 0, scale: 1 }
 
 function RevealLayer({ image, cursorX, cursorY }) {
   const canvasRef = useRef(null)
