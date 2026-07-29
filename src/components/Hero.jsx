@@ -87,7 +87,7 @@ function MobileMenu({ open, onNavigate }) {
 
 export default function Hero() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [activeId, setActiveId] = useState('o-nas')
+  const [activeId, setActiveId] = useState('uvod')
   const [scrolled, setScrolled] = useState(false)
 
   const handleNavigate = (id) => {
@@ -97,7 +97,7 @@ export default function Hero() {
 
   // Zvýraznění sekce, ve které se návštěvník právě nachází
   useEffect(() => {
-    const sections = ['o-nas', 'aktuality', 'palirna', 'kontakt']
+    const sections = ['uvod', 'o-nas', 'aktuality', 'palirna', 'kontakt']
       .map((id) => document.getElementById(id))
       .filter(Boolean)
 
@@ -123,7 +123,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section id="o-nas" className="relative bg-soil">
+    <section id="uvod" className="relative bg-soil">
       <header
         className={`fixed inset-x-0 top-0 z-[60] flex items-center justify-between px-6 py-4 transition-all duration-500 md:px-10 ${
           scrolled
@@ -132,10 +132,13 @@ export default function Hero() {
         }`}
       >
         <button
-          onClick={() => scrollToId('o-nas')}
-          className="font-sans text-lg font-semibold text-wheat"
+          onClick={() => scrollToId('uvod')}
+          className="flex items-baseline gap-2 font-sans text-wheat"
         >
-          Statek Vaculovi
+          <span className="text-lg font-semibold tracking-wide">RFKL</span>
+          <span className="hidden text-xs font-light text-wheat/60 sm:inline">
+            Rodinná Farma Krásné Loučky
+          </span>
         </button>
 
         <div className="hidden items-center gap-8 md:flex">
@@ -179,18 +182,16 @@ export default function Hero() {
         mediaSrc="media/hero.mp4"
         posterSrc="media/hero-poster.jpg"
         bgImageSrc="media/hero-poster.jpg"
-        title="Pěstujeme poctivé obilí"
-        date="Statek Vaculovi"
+        title="Krásné Loučky"
+        date="Rodinná farma"
         scrollToExpand="Posouváním rozehrajete video"
         scrubOnScroll
       >
         <div className="mx-auto flex min-h-[40vh] w-full max-w-2xl flex-col items-center justify-center text-center">
-          <h1 className="font-instrument-serif text-3xl text-wheat md:text-4xl">
-            Rodinná farma <em className="italic">na Moravě</em>
+          <h1 className="font-instrument-serif text-3xl leading-tight text-wheat md:text-4xl">
+            Již více jak 30 let hospodaříme{' '}
+            <em className="italic">v naší krásné přírodě</em>
           </h1>
-          <p className="mt-4 max-w-md font-sans text-sm font-light leading-relaxed text-wheat/70 md:text-base">
-            Tři generace na stejné půdě. Pěstujeme obilí poctivě a s úctou ke krajině.
-          </p>
 
           <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row">
             <button

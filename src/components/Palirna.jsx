@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { Phone } from 'lucide-react'
+
+const PALIRNA = { name: 'Josef Vojkůvka', phone: '+420 733 531 233' }
 
 // Kurzorové „kukátko“: přes základní fotku kotle se maskou (radiální gradient
 // kreslený do canvasu) odhaluje druhý obrázek — průřez, co se děje uvnitř.
@@ -156,10 +158,6 @@ export default function Palirna() {
     }
   }, [])
 
-  const scrollToKontakt = () => {
-    document.getElementById('kontakt')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <section
       id="palirna"
@@ -188,28 +186,37 @@ export default function Palirna() {
           >
             do naší palírny
           </span>
+          <span className="mt-4 block font-sans text-xs uppercase tracking-[0.3em] text-wheat/50 sm:text-sm">
+            Pěstitelská palírna
+          </span>
         </h2>
       </div>
 
       <div className="absolute bottom-14 left-10 z-50 hidden max-w-[280px] sm:block md:left-14">
         <p className="font-sans text-sm font-light leading-relaxed text-wheat/80">
-          Z vlastního ovoce a obilí pálíme poctivé destiláty postaru — v měděném kotli, pomalu a
-          s citem. Posviťte si kurzorem na kotel a uvidíte, co se děje uvnitř.
+          Pěstitelská palírna — pálíme z vašeho ovoce. Přivezete kvas, my se postaráme
+          o zbytek: pomalá destilace v měděném kotli, postaru a s citem. Posviťte si kurzorem
+          na kotel a uvidíte, co se děje uvnitř.
         </p>
       </div>
 
       <div className="absolute bottom-10 left-5 right-5 z-50 flex max-w-full flex-col items-start gap-4 sm:bottom-24 sm:left-auto sm:right-10 sm:max-w-[280px] sm:gap-5 md:right-14">
-        <p className="font-sans text-xs font-light leading-relaxed text-wheat/80 sm:text-sm">
-          Kvas z vlastních švestek a jablek, dvojitá destilace a trpělivé zrání. Domluvte si
-          návštěvu nebo ochutnávku.
-        </p>
-        <button
-          onClick={scrollToKontakt}
+        <div>
+          <p className="font-sans text-xs uppercase tracking-widest text-wheat/40">
+            Kontakt na palírnu
+          </p>
+          <p className="mt-2 font-instrument-serif text-xl text-wheat sm:text-2xl">
+            {PALIRNA.name}
+          </p>
+          <p className="font-sans text-sm text-wheat/70">{PALIRNA.phone}</p>
+        </div>
+        <a
+          href={`tel:${PALIRNA.phone.replace(/\s/g, '')}`}
           className="pointer-events-auto flex items-center gap-2 rounded-full bg-grain px-7 py-3 font-sans text-sm font-medium text-soil transition-all hover:scale-[1.03] hover:bg-wheat active:scale-95"
         >
-          Domluvit ochutnávku
-          <ArrowRight size={16} />
-        </button>
+          <Phone size={16} />
+          Zavolat do palírny
+        </a>
       </div>
     </section>
   )
