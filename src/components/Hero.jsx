@@ -181,7 +181,7 @@ export default function Hero() {
           rozbalovacího okna, na pozadí zůstává klidná krajina. */}
       <ScrollExpandMedia
         mediaType="video"
-        mediaSrc="media/hero.mp4"
+        mediaSrc="media/hero.mp4?v=2"
         posterSrc="media/hero-poster.jpg"
         bgImageSrc="media/hero-bg.jpg"
         title="Krásné Loučky"

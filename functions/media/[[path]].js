@@ -25,7 +25,11 @@ export async function onRequest({ request, env }) {
   }
 
   // Asset server umí jen celý soubor, tak si o něj řekneme bez Range.
-  const assetRequest = new Request(url.toString(), { method: 'GET' })
+  // Query string (?v=2 pro obejití cache) je potřeba odříznout, jinak
+  // by se soubor nenašel.
+  const assetUrl = new URL(url.toString())
+  assetUrl.search = ''
+  const assetRequest = new Request(assetUrl.toString(), { method: 'GET' })
   const asset = await env.ASSETS.fetch(assetRequest)
 
   if (!asset.ok) return asset
