@@ -1,0 +1,27 @@
+# Konfigurace pro Hostinger (Apache/LiteSpeed). Na GitHub Pages se ignoruje.
+#
+# Videa se musí dát přetáčet — hero se scrubuje podle scrollu a Safari bez
+# Range requestů video vůbec nepřehraje. Apache i LiteSpeed to umí samy,
+# stačí správný MIME typ (na rozdíl od Cloudflare Pages, kde je kvůli tomu
+# potřeba funkce ve functions/media/[[path]].js).
+AddType video/mp4 .mp4
+AddType video/webm .webm
+
+<IfModule mod_headers.c>
+  Header set Accept-Ranges bytes
+</IfModule>
+
+# Hashované assety (index-XXXX.js/css) se dají cachovat natrvalo,
+# index.html nikdy — jinak by se nová verze neprojevila.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType video/mp4 "access plus 30 days"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml
+</IfModule>
