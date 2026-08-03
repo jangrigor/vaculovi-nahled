@@ -1,9 +1,13 @@
 name: Deploy to Hostinger
 
 # Stejný kód se pushuje do dvou repozitářů (ostrý `vaculovi` i náhledový
-# `vaculovi-nahled`), takže tenhle workflow je v obou. Nahrávat se ale musí
-# jen tam, kde je opravdu nastavené FTP — proto ten guard přes FTP_SERVER.
-# V repozitáři bez secrets se krok jen přeskočí, workflow neselže.
+# `vaculovi-nahled`), takže tenhle workflow je v obou. Nasazovat se ale musí
+# jen tam, kde je opravdu nastavené SSH — proto ten guard přes SSH_HOST.
+# V repozitáři bez secrets se kroky jen přeskočí, workflow neselže.
+#
+# Proč SSH a ne FTP: Hostinger blokuje FTP z datacentrových IP adres,
+# runnery GitHubu se na port 21 vůbec nedovolají (Timeout (control socket)).
+# SSH na portu 65002 blokované není.
 
 on:
   push:
@@ -14,54 +18,58 @@ concurrency:
   group: hostinger
   cancel-in-progress: true
 
+env:
+  SSH_PORT: 65002
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      SSH_HOST: ${{ secrets.SSH_HOST }}
     steps:
-      - name: Bez nastaveného FTP se nenasazuje
-        if: env.FTP_SERVER == ''
-        run: echo "Secret FTP_SERVER není nastavený — přeskakuji nasazení na Hostinger."
+      - name: Bez nastaveného SSH se nenasazuje
+        if: env.SSH_HOST == ''
+        run: echo "Secret SSH_HOST není nastavený — přeskakuji nasazení na Hostinger."
 
       - uses: actions/checkout@v4
-        if: env.FTP_SERVER != ''
+        if: env.SSH_HOST != ''
 
       - uses: actions/setup-node@v4
-        if: env.FTP_SERVER != ''
+        if: env.SSH_HOST != ''
         with:
           node-version: 20
           cache: npm
 
       - run: npm ci
-        if: env.FTP_SERVER != ''
+        if: env.SSH_HOST != ''
 
       - run: npm run build
-        if: env.FTP_SERVER != ''
+        if: env.SSH_HOST != ''
 
       # CNAME patří jen GitHub Pages, na Hostingeru nemá co dělat.
       - name: Odstranit CNAME z buildu
-        if: env.FTP_SERVER != ''
+        if: env.SSH_HOST != ''
         run: rm -f dist/CNAME
 
-      - name: Nahrát na Hostinger přes FTP
-        if: env.FTP_SERVER != ''
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          # Hostinger dává jako hostname IP adresu, na kterou certifikát
-          # nemůže sedět — přísná kontrola by spojení shodila. Přenos je
-          # i tak šifrovaný, na rozdíl od holého FTP.
-          security: loose
-          local-dir: ./dist/
-          # Kam na serveru. Nastav repository variable FTP_SERVER_DIR,
-          # když web nemá být v kořeni (např. /public_html/nahled/).
-          server-dir: ${{ vars.FTP_SERVER_DIR || '/public_html/' }}
-          # Action si na serveru drží stav a posílá jen změněné soubory —
-          # 6,5MB hero.mp4 se tak nenahrává při každém pushi znovu.
-          state-name: .ftp-deploy-state.json
-          dangerous-clean-slate: false
+      - name: Připravit SSH klíč
+        if: env.SSH_HOST != ''
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Nahrát na Hostinger přes rsync
+        if: env.SSH_HOST != ''
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          # Kam na serveru. Cesta musí končit lomítkem.
+          TARGET_DIR: ${{ vars.SSH_TARGET_DIR || '/domains/rfkl.eu/public_html/' }}
+        run: |
+          rsync -rlvz --delete \
+            -e "ssh -p $SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
+            dist/ "$SSH_USER@$SSH_HOST:$TARGET_DIR"
+
+      - name: Uklidit klíč
+        if: always() && env.SSH_HOST != ''
+        run: rm -f ~/.ssh/deploy_key
