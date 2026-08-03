@@ -207,6 +207,18 @@ export default function Palirna() {
       className="relative h-screen w-full overflow-hidden bg-[#0d0a07]"
       style={{ height: '100svh' }}
     >
+      {/* Na mobilu se fotka přizpůsobuje šířce, takže nad ní a pod ní zbývá
+          pruh. Kdyby prosvítalo holé pozadí sekce, byla by na okraji snímku
+          vidět hrana — proto pod ním leží rozostřená kopie přes celou plochu.
+          Zvětšení o 10 % odřízne měkké okraje, které blur vytvoří. */}
+      {source.fit === 'width' && (
+        <div
+          aria-hidden
+          className="absolute inset-0 z-0 scale-110 bg-cover bg-center bg-no-repeat blur-2xl brightness-[0.45]"
+          style={{ backgroundImage: `url(${source.base})` }}
+        />
+      )}
+
       <div
         className="absolute inset-0 z-10 bg-center bg-no-repeat"
         style={{
