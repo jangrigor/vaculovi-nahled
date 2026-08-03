@@ -205,7 +205,13 @@ const ScrollExpandMedia = ({
           </motion.div>
 
           <div className='container mx-auto flex flex-col items-center justify-start relative z-10'>
-            <div className='flex flex-col items-center justify-center w-full h-[100dvh] relative'>
+            {/* Video se roztáhne nejvýš na 800 px, ale kontejner měl napevno
+                100dvh — na vysokém monitoru pak zbytek výšky zůstal jako
+                mrtvé místo nad i pod videem a odtlačoval text dolů. Strop
+                960 px = 800 na video + 80 nad a pod, čímž mezera sedí se
+                spodním odsazením pod tlačítky. Na nižších oknech se nic
+                nemění, tam je 100dvh menší. */}
+            <div className='flex flex-col items-center justify-center w-full h-[min(100dvh,960px)] relative'>
               <div
                 className='absolute z-0 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-none rounded-2xl'
                 style={{
