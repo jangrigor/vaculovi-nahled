@@ -184,7 +184,6 @@ export default function Hero() {
         mediaSrc="media/hero.mp4?v=2"
         posterSrc="media/hero-poster.jpg"
         bgImageSrc="media/hero-bg.jpg"
-        title="Krásné Loučky"
         date="Rodinná farma"
         scrollToExpand="Posouváním rozehrajete video"
         scrubOnScroll
