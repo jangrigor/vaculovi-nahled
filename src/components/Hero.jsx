@@ -50,10 +50,13 @@ function Hamburger({ open, onClick }) {
   )
 }
 
+// Překryv menu musí být nad obsahem stránky — sekce Palírna má textové bloky
+// na z-50 a přes menu prosvítaly. Zároveň musí zůstat pod hlavičkou na z-[60],
+// aby byl křížek pro zavření nahoře a klikatelný.
 function MobileMenu({ open, onNavigate }) {
   return (
     <div
-      className={`fixed inset-0 z-40 md:hidden bg-soil/95 backdrop-blur-xl transition-opacity duration-700 ${
+      className={`fixed inset-0 z-[55] md:hidden bg-soil/95 backdrop-blur-xl transition-opacity duration-700 ${
         open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}
     >
