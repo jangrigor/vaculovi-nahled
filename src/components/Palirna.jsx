@@ -30,6 +30,10 @@ const SOURCES = {
 const PORTRAIT_QUERY = '(max-width: 767px)'
 const ALIGN = { dx: 0, dy: 0, scale: 1 }
 
+// Měkký stín pod texty ležícími na fotce — drží je čitelné i tam, kde pod
+// nimi projede světlý měděný kotel nebo oheň v kamnech.
+const TEXT_SHADOW = '0 1px 2px rgba(13,10,7,0.9), 0 4px 24px rgba(13,10,7,0.75)'
+
 function useSource() {
   const [portrait, setPortrait] = useState(
     () => typeof window !== 'undefined' && window.matchMedia(PORTRAIT_QUERY).matches
@@ -211,8 +215,26 @@ export default function Palirna() {
         cursorY={cursorPos.y}
       />
 
+      {/* Ztmavení nad a pod fotkou — texty leží přímo na kotli a bez závoje
+          se ztrácejí (hlavně drobné verzálkové popisky). Vrstva je nad
+          odhalovacím canvasem, ale pod texty, takže kukátko zůstává vidět. */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 z-40 h-[42%]"
+        style={{
+          background:
+            'linear-gradient(to bottom, rgba(13,10,7,0.72) 0%, rgba(13,10,7,0.34) 45%, rgba(13,10,7,0) 100%)',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-40 h-[42%]"
+        style={{
+          background:
+            'linear-gradient(to top, rgba(13,10,7,0.88) 0%, rgba(13,10,7,0.5) 40%, rgba(13,10,7,0) 100%)',
+        }}
+      />
+
       <div className="pointer-events-none absolute inset-x-0 top-[12%] z-50 flex flex-col items-center px-5 text-center">
-        <h2 className="leading-[0.95] text-wheat">
+        <h2 className="leading-[0.95] text-wheat" style={{ textShadow: TEXT_SHADOW }}>
           <span
             className="block font-instrument-serif text-4xl italic sm:text-6xl md:text-7xl"
             style={{ letterSpacing: '-0.03em' }}
@@ -225,14 +247,17 @@ export default function Palirna() {
           >
             do naší palírny
           </span>
-          <span className="mt-4 block font-sans text-xs uppercase tracking-[0.3em] text-wheat/50 sm:text-sm">
+          <span className="mt-4 block font-sans text-xs uppercase tracking-[0.3em] text-wheat/75 sm:text-sm">
             Pěstitelská palírna
           </span>
         </h2>
       </div>
 
-      <div className="absolute bottom-14 left-10 z-50 hidden max-w-[280px] sm:block md:left-14">
-        <p className="font-sans text-sm font-light leading-relaxed text-wheat/80">
+      <div
+        className="absolute bottom-14 left-10 z-50 hidden max-w-[280px] sm:block md:left-14"
+        style={{ textShadow: TEXT_SHADOW }}
+      >
+        <p className="font-sans text-sm font-light leading-relaxed text-wheat/85">
           Pěstitelská palírna — pálíme z vašeho ovoce. Přivezete kvas, my se postaráme
           o zbytek: pomalá destilace v měděném kotli, postaru a s citem. Posviťte si kurzorem
           na kotel a uvidíte, co se děje uvnitř.
@@ -240,14 +265,14 @@ export default function Palirna() {
       </div>
 
       <div className="absolute bottom-10 left-5 right-5 z-50 flex max-w-full flex-col items-start gap-4 sm:bottom-24 sm:left-auto sm:right-10 sm:max-w-[280px] sm:gap-5 md:right-14">
-        <div>
-          <p className="font-sans text-xs uppercase tracking-widest text-wheat/40">
+        <div style={{ textShadow: TEXT_SHADOW }}>
+          <p className="font-sans text-xs uppercase tracking-widest text-wheat/70">
             Kontakt na palírnu
           </p>
           <p className="mt-2 font-instrument-serif text-xl text-wheat sm:text-2xl">
             {PALIRNA.name}
           </p>
-          <p className="font-sans text-sm text-wheat/70">{PALIRNA.phone}</p>
+          <p className="font-sans text-sm text-wheat/85">{PALIRNA.phone}</p>
         </div>
         <a
           href={`tel:${PALIRNA.phone.replace(/\s/g, '')}`}
