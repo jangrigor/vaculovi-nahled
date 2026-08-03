@@ -13,18 +13,26 @@ const PALIRNA = { name: 'Josef Vojkůvka', phone: '+420 733 531 233' }
 // záběr na výšku. Průřez v obou párech vznikl jako úprava základního snímku,
 // takže sedí 1:1 — žádná kompenzace posunu není potřeba. Kdyby se obrázky
 // někdy vyměnily za nesouhlasný pár, dá se doladit přes ALIGN.
+// `fit` říká, jak se záběr mapuje do sekce. Na šířku se roztahuje přes cover.
+// Na mobilu se ale kotel přes cover natáhl přes celou výšku displeje a nadpis
+// i kontakt pak ležely přímo na něm. Proto se na úzkých displejích fotka
+// přizpůsobuje šířce ('width') — zůstane celá vidět, zmenší se na výšku a nad
+// ní i pod ní vznikne tmavý pruh, do kterého se text vejde. Pruh není vidět,
+// protože horní i dolní okraj snímku je skoro černý jako pozadí sekce.
 const SOURCES = {
   wide: {
     base: 'media/palirna-base.jpg',
     reveal: 'media/palirna-reveal.jpg',
     w: 2000,
     h: 1116,
+    fit: 'cover',
   },
   portrait: {
     base: 'media/palirna-base-mobil.jpg',
     reveal: 'media/palirna-reveal-mobil.jpg',
     w: 1120,
     h: 2006,
+    fit: 'width',
   },
 }
 const PORTRAIT_QUERY = '(max-width: 767px)'
@@ -45,7 +53,7 @@ function useSource() {
   return portrait ? SOURCES.portrait : SOURCES.wide
 }
 
-function RevealLayer({ image, imgW, imgH, cursorX, cursorY }) {
+function RevealLayer({ image, imgW, imgH, fit, cursorX, cursorY }) {
   const canvasRef = useRef(null)
   const imgRef = useRef(null)
   const [imgReady, setImgReady] = useState(false)
@@ -92,8 +100,9 @@ function RevealLayer({ image, imgW, imgH, cursorX, cursorY }) {
     const radius = Math.min(260, w * 0.32)
     if (cursorX < -radius || cursorY < -radius) return
 
-    // Cover mapování + kompenzace zarovnání (scale kolem středu, pak posun)
-    const coverScale = Math.max(w / imgW, h / imgH)
+    // Mapování musí sedět 1:1 s background-size základní fotky pod canvasem,
+    // jinak by průřez v kukátku neseděl na kotel.
+    const coverScale = fit === 'width' ? w / imgW : Math.max(w / imgW, h / imgH)
     const drawScale = coverScale * ALIGN.scale
     const drawW = imgW * drawScale
     const drawH = imgH * drawScale
@@ -115,7 +124,7 @@ function RevealLayer({ image, imgW, imgH, cursorX, cursorY }) {
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, w, h)
     ctx.restore()
-  }, [cursorX, cursorY, imgReady, size, imgW, imgH])
+  }, [cursorX, cursorY, imgReady, size, imgW, imgH, fit])
 
   return (
     <canvas
@@ -199,14 +208,18 @@ export default function Palirna() {
       style={{ height: '100svh' }}
     >
       <div
-        className="absolute inset-0 z-10 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${source.base})` }}
+        className="absolute inset-0 z-10 bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${source.base})`,
+          backgroundSize: source.fit === 'width' ? '100% auto' : 'cover',
+        }}
       />
 
       <RevealLayer
         image={source.reveal}
         imgW={source.w}
         imgH={source.h}
+        fit={source.fit}
         cursorX={cursorPos.x}
         cursorY={cursorPos.y}
       />
