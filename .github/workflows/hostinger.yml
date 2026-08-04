@@ -51,13 +51,18 @@ jobs:
         if: env.SSH_HOST != ''
         run: rm -f dist/CNAME
 
+      # Otisk serveru je zadaný napevno přes secret SSH_HOST_KEY místo
+      # stahování přes ssh-keyscan. Ten měl pětisekundový timeout a když se
+      # runner k serveru nedovolal, shodil pod `bash -e` celý krok dřív, než
+      # se vůbec zkusilo nasazení. Pevný otisk je navíc bezpečnější — klíč
+      # se neověřuje tím, co zrovna odpoví protistrana.
       - name: Připravit SSH klíč
         if: env.SSH_HOST != ''
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          printf '[%s]:%s %s\n' "$SSH_HOST" "$SSH_PORT" "${{ secrets.SSH_HOST_KEY }}" > ~/.ssh/known_hosts
 
       - name: Nahrát na Hostinger přes rsync
         if: env.SSH_HOST != ''
@@ -65,10 +70,23 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER }}
           # Kam na serveru. Cesta musí končit lomítkem.
           TARGET_DIR: ${{ vars.SSH_TARGET_DIR || '/domains/rfkl.eu/public_html/' }}
+        # Hostinger občas spojení z datacentrových IP odmítne (kvůli tomu se
+        # opustilo FTP a stejně to umí potrápit i SSH). Tři pokusy s odstupem
+        # přes dočasné omezení přejdou; když neprojde ani třetí, krok selže
+        # nahlas, ať se na to nepřijde až podle zastaralého webu.
         run: |
-          rsync -rlvz --delete \
-            -e "ssh -p $SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
-            dist/ "$SSH_USER@$SSH_HOST:$TARGET_DIR"
+          for pokus in 1 2 3; do
+            if rsync -rlz --delete \
+                 -e "ssh -p $SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o ConnectTimeout=20" \
+                 dist/ "$SSH_USER@$SSH_HOST:$TARGET_DIR"; then
+              echo "Nasazeno na $pokus. pokus."
+              exit 0
+            fi
+            echo "Pokus $pokus selhal."
+            [ "$pokus" -lt 3 ] && sleep 30
+          done
+          echo "Nasazení na Hostinger neprošlo ani po třech pokusech."
+          exit 1
 
       - name: Uklidit klíč
         if: always() && env.SSH_HOST != ''
