@@ -301,9 +301,11 @@ const ScrollExpandMedia = ({
                 )}
 
                 <div className='flex flex-col items-center text-center relative z-10 mt-4 transition-none'>
+                  {/* Titulek se nesmí zalomit — na úzkých displejích se proto
+                      zmenší písmo, místo aby text přetekl na druhý řádek. */}
                   {date && (
                     <p
-                      className='text-2xl text-wheat'
+                      className='whitespace-nowrap text-lg text-wheat sm:text-2xl'
                       style={{ transform: `translateX(-${textTranslateX}vw)` }}
                     >
                       {date}

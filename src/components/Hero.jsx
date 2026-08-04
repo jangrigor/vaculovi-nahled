@@ -187,7 +187,7 @@ export default function Hero() {
         mediaSrc="media/hero.mp4?v=2"
         posterSrc="media/hero-poster.jpg"
         bgImageSrc="media/hero-bg.jpg"
-        date="Rodinná farma"
+        date="Rodinná Farma Krásné Loučky"
         scrollToExpand="Posouváním rozehrajete video"
         scrubOnScroll
       >
