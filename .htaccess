@@ -7,6 +7,10 @@
 AddType video/mp4 .mp4
 AddType video/webm .webm
 
+# Hostinger web stahuje přes Git deployment, takže v public_html zůstává
+# složka .git. Přes web nemá co dělat.
+RedirectMatch 404 /\.git
+
 <IfModule mod_headers.c>
   Header set Accept-Ranges bytes
 </IfModule>
