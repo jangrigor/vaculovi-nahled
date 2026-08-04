@@ -1,0 +1,63 @@
+name: Sestavit web pro Hostinger
+
+# Hostinger blokuje spojení z datacentrových IP adres, takže se na něj
+# z runnerů GitHubu nedá nahrávat ani přes FTP, ani přes SSH (obojí končí
+# na "Connection timed out"). Řešení obrací směr: GitHub tady jen sestaví
+# web a uloží ho do větve `deploy`, a Hostinger si ho odtud stáhne sám
+# přes Git deployment v hPanelu. Spojení pak navazuje server směrem ven,
+# kde ho žádná blokace neomezuje.
+#
+# Ve větvi `deploy` je vždy jen hotový obsah složky dist/ — žádné zdrojáky.
+# Nikdy do ní nic neukládej ručně, každé sestavení ji přepíše.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hostinger-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      # CNAME patří jen GitHub Pages, na Hostingeru nemá co dělat.
+      - name: Odstranit CNAME z buildu
+        run: rm -f dist/CNAME
+
+      - name: Publikovat do větve deploy
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin deploy
+          # -B nastaví lokální větev deploy na stav z originu a rovnou ji
+          # vytáhne do vedlejšího adresáře, aby se nemíchala s buildem.
+          git worktree add ../deploy-out -B deploy origin/deploy
+          # `.git` je ve worktree soubor, ne složka — bez vyloučení by ho
+          # --delete smazal a worktree by se rozpadl.
+          rsync -a --delete --exclude '.git' dist/ ../deploy-out/
+          cd ../deploy-out
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Build se oproti minule nezměnil, není co publikovat."
+            exit 0
+          fi
+          git commit -m "Sestaveno z ${{ github.sha }}"
+          git push origin deploy
+          echo "Hotovo. Hostinger si změnu stáhne z větve deploy."

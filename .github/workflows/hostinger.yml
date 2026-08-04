@@ -9,9 +9,14 @@ name: Deploy to Hostinger
 # runnery GitHubu se na port 21 vůbec nedovolají (Timeout (control socket)).
 # SSH na portu 65002 blokované není.
 
+# POZOR: tenhle způsob nasazení dnes nefunguje. Hostinger zahazuje spojení
+# z IP adres GitHubu i na portu 65002 ("Connection timed out", tři pokusy
+# za sebou), stejně jako předtím na FTP. Nasazuje se proto přes
+# hostinger-build.yml, který jen uloží build do větve `deploy`, a Hostinger
+# si ho stáhne sám. Spouštění při pushi je tady vypnuté, aby workflow
+# nehlásil chybu po každé změně — ruční spuštění zůstává pro případ, že by
+# Hostinger blokaci zrušil.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
