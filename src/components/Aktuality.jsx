@@ -10,6 +10,7 @@ const newsItems = [
   {
     id: 'mas-krnovsko-mulcovac',
     image: 'media/aktualita-mulcovac.jpg',
+    imagePosition: 'center 55%',
     date: '5. 10. 2026',
     title: 'Nový mulčovač a dílenský stůl s podporou EU',
     text:
@@ -47,7 +48,8 @@ function NewsCard({ item }) {
             alt={item.title}
             loading="lazy"
             decoding="async"
-            className="h-44 w-full shrink-0 rounded-lg object-cover"
+            className="h-56 w-full shrink-0 rounded-lg object-cover"
+            style={{ objectPosition: item.imagePosition ?? 'center' }}
           />
         )}
         <div className={open ? 'pb-1' : 'pb-1 pt-4'}>
@@ -64,7 +66,8 @@ function NewsCard({ item }) {
                   {p}
                 </p>
               ))}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Fotky v celém rozsahu bez ořezu — mulčovač je na výšku, stůl na šířku. */}
+              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end">
                 {[{ src: item.image, alt: item.title }, ...(item.photos ?? [])].map((ph) => (
                   <img
                     key={ph.src}
@@ -72,7 +75,7 @@ function NewsCard({ item }) {
                     alt={ph.alt}
                     loading="lazy"
                     decoding="async"
-                    className="aspect-[4/3] w-full rounded-lg object-cover"
+                    className="max-h-[26rem] w-full rounded-lg object-contain sm:w-auto sm:min-w-0 sm:flex-shrink"
                   />
                 ))}
               </div>
