@@ -10,7 +10,8 @@ const newsItems = [
   {
     id: 'mas-krnovsko-mulcovac',
     image: 'media/aktualita-mulcovac.jpg',
-    imagePosition: 'center 55%',
+    // Fotka je na výšku — v kartě se ukáže celá, ne jen výřez.
+    imageAspect: '3 / 4',
     date: '5. 10. 2026',
     title: 'Nový mulčovač a dílenský stůl s podporou EU',
     text:
@@ -48,8 +49,8 @@ function NewsCard({ item }) {
             alt={item.title}
             loading="lazy"
             decoding="async"
-            className="h-56 w-full shrink-0 rounded-lg object-cover"
-            style={{ objectPosition: item.imagePosition ?? 'center' }}
+            className={`w-full shrink-0 rounded-lg object-cover ${item.imageAspect ? '' : 'h-56'}`}
+            style={item.imageAspect ? { aspectRatio: item.imageAspect } : undefined}
           />
         )}
         <div className={open ? 'pb-1' : 'pb-1 pt-4'}>
