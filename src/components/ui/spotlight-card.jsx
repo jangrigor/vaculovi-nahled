@@ -77,7 +77,8 @@ const GlowCard = ({
       backgroundAttachment: 'fixed',
       border: 'var(--border-size) solid var(--backup-border)',
       position: 'relative',
-      touchAction: 'none',
+      // Dřív 'none' — to na mobilu blokovalo scrollování stránky prstem přes kartu.
+      touchAction: 'pan-y',
     }
 
     if (width !== undefined) {
