@@ -97,7 +97,7 @@ Error generating stack: `+c.message+`
         calc(var(--x, 0) * 1px)
         calc(var(--y, 0) * 1px),
         hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 70) * 1%) / var(--bg-spot-opacity, 0.1)), transparent
-      )`,backgroundColor:"var(--backdrop, transparent)",backgroundSize:"calc(100% + (2 * var(--border-size))) calc(100% + (2 * var(--border-size)))",backgroundPosition:"50% 50%",backgroundAttachment:"fixed",border:"var(--border-size) solid var(--backup-border)",position:"relative",touchAction:"none"};return u!==void 0&&(C.width=typeof u=="number"?`${u}px`:u),d!==void 0&&(C.height=typeof d=="number"?`${d}px`:d),C};return R.jsxs(R.Fragment,{children:[R.jsx("style",{dangerouslySetInnerHTML:{__html:`
+      )`,backgroundColor:"var(--backdrop, transparent)",backgroundSize:"calc(100% + (2 * var(--border-size))) calc(100% + (2 * var(--border-size)))",backgroundPosition:"50% 50%",backgroundAttachment:"fixed",border:"var(--border-size) solid var(--backup-border)",position:"relative",touchAction:"pan-y"};return u!==void 0&&(C.width=typeof u=="number"?`${u}px`:u),d!==void 0&&(C.height=typeof d=="number"?`${d}px`:d),C};return R.jsxs(R.Fragment,{children:[R.jsx("style",{dangerouslySetInnerHTML:{__html:`
     [data-glow]::before,
     [data-glow]::after {
       pointer-events: none;
