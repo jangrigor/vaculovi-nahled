@@ -4,8 +4,8 @@ import { GlowCard } from '@/components/ui/spotlight-card'
 
 // Novou novinku stačí přidat jako objekt — zbytek kódu se nemění.
 // Povinné: { id, image: 'media/nazev.jpg', date: '1. 8. 2026', title: '…', text: '…' }
-// Volitelné pro delší článek: body (pole odstavců), photos (další fotky),
-// logos (pruh s logy dotace), pdf (odkaz ke stažení).
+// Volitelné pro delší článek: body (pole odstavců), photos (další fotky na šířku),
+// poster (publicitní cedule), link, pdf (odkaz ke stažení).
 const newsItems = [
   {
     id: 'mas-krnovsko-mulcovac',
@@ -31,6 +31,42 @@ const newsItems = [
     pdf: 'media/publicita-mas-krnovsko.pdf',
   },
 ]
+
+// Mozaika fotek: hlavní fotka na výšku vlevo přes celou výšku, ostatní (na šířku)
+// vpravo pod sebou ve svém přirozeném poměru. Na mobilu jdou všechny pod sebe.
+// Každá fotka se po kliknutí otevře v plné velikosti.
+function Gallery({ item }) {
+  const side = [...(item.photos ?? []), ...(item.poster ? [item.poster] : [])]
+  const link = (ph, imgClass, aClass = '') => (
+    <a
+      key={ph.src}
+      href={ph.src}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`block overflow-hidden rounded-lg ${aClass}`}
+    >
+      <img
+        src={ph.src}
+        alt={ph.alt}
+        loading="lazy"
+        decoding="async"
+        className={`w-full transition-transform duration-300 hover:scale-[1.02] ${imgClass}`}
+      />
+    </a>
+  )
+
+  if (!side.length) return link({ src: item.image, alt: item.title }, 'h-auto')
+
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1.08fr_1fr]">
+      {/* Absolutní pozice: výšku řádků určují fotky vpravo, levá je jen vyplní. */}
+      <div className="relative sm:row-span-2">
+        {link({ src: item.image, alt: item.title }, 'h-auto object-cover sm:h-full', 'sm:absolute sm:inset-0')}
+      </div>
+      {side.map((ph) => link(ph, 'h-auto'))}
+    </div>
+  )
+}
 
 function NewsCard({ item }) {
   const [open, setOpen] = useState(false)
@@ -61,65 +97,42 @@ function NewsCard({ item }) {
           )}
 
           {open && (
-            <div className="mt-3 space-y-4">
-              {item.body.map((p, i) => (
-                <p key={i} className="max-w-3xl font-sans text-sm leading-relaxed text-wheat/80">
-                  {p}
-                </p>
-              ))}
-              {/* Fotky v celém rozsahu bez ořezu — mulčovač je na výšku, stůl na šířku. */}
-              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end">
-                {[{ src: item.image, alt: item.title }, ...(item.photos ?? [])].map((ph) => (
-                  <img
-                    key={ph.src}
-                    src={ph.src}
-                    alt={ph.alt}
-                    loading="lazy"
-                    decoding="async"
-                    className="max-h-[26rem] w-full rounded-lg object-contain sm:w-auto sm:min-w-0 sm:flex-shrink"
-                  />
+            <div className="mt-3 max-w-4xl space-y-6">
+              <div className="space-y-4">
+                {item.body.map((p, i) => (
+                  <p key={i} className="font-sans text-sm leading-relaxed text-wheat/80">
+                    {p}
+                  </p>
                 ))}
               </div>
-              {item.poster && (
-                <a href={item.poster.src} target="_blank" rel="noopener noreferrer" className="block">
-                  <img
-                    src={item.poster.src}
-                    alt={item.poster.alt}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full max-w-3xl rounded-lg"
-                  />
-                </a>
-              )}
-              {item.link && (
-                <p className="font-sans text-sm text-wheat/70">
-                  Více informací o podpoře a činnosti MAS Rozvoj Krnovska o.p.s. naleznete na{' '}
+
+              <Gallery item={item} />
+
+              <div className="flex flex-col gap-3 border-t border-wheat/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                {item.link && (
+                  <p className="font-sans text-sm text-wheat/60">
+                    Více o podpoře MAS Rozvoj Krnovska o.p.s. na{' '}
+                    <a
+                      href={item.link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-grain underline underline-offset-2 hover:text-wheat"
+                    >
+                      {item.link.label}
+                    </a>
+                  </p>
+                )}
+                {item.pdf && (
                   <a
-                    href={item.link.href}
+                    href={item.pdf}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-grain underline underline-offset-2 hover:text-wheat"
+                    className="inline-flex shrink-0 items-center gap-2 font-sans text-sm text-grain hover:text-wheat"
                   >
-                    {item.link.label}
+                    <FileText size={16} /> Stáhnout článek (PDF)
                   </a>
-                  .
-                </p>
-              )}
-              {item.logos && (
-                <div className="rounded-lg bg-white p-3">
-                  <img src={item.logos.src} alt={item.logos.alt} loading="lazy" className="w-full" />
-                </div>
-              )}
-              {item.pdf && (
-                <a
-                  href={item.pdf}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 font-sans text-sm text-grain hover:text-wheat"
-                >
-                  <FileText size={16} /> Stáhnout článek (PDF)
-                </a>
-              )}
+                )}
+              </div>
             </div>
           )}
 
