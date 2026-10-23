@@ -23,6 +23,10 @@ const newsItems = [
       'Tímto bych rád poděkoval za poskytnutou podporu MAS Rozvoj Krnovska o.p.s. — Petr Vacula',
     ],
     photos: [{ src: 'media/aktualita-stul.jpg', alt: 'Nový dílenský pracovní stůl' }],
+    poster: {
+      src: 'media/aktualita-cedule.jpg',
+      alt: 'Publicitní cedule projektu: Inovace zemědělské techniky – rodinná farma v Krásných Loučkách byl spolufinancován Evropskou unií. Cílem projektu je zefektivnění zemědělské výroby. Nový mulčovač a dílenský stůl zvýší soběstačnost farmy při údržbě travních porostů a opravách techniky.',
+    },
     logos: {
       src: 'media/loga-eu-mas.png',
       alt: 'Spolufinancováno Evropskou unií · Strategický plán SZP · MAS Rozvoj Krnovska',
@@ -80,6 +84,17 @@ function NewsCard({ item }) {
                   />
                 ))}
               </div>
+              {item.poster && (
+                <a href={item.poster.src} target="_blank" rel="noopener noreferrer" className="block">
+                  <img
+                    src={item.poster.src}
+                    alt={item.poster.alt}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full max-w-3xl rounded-lg"
+                  />
+                </a>
+              )}
               {item.link && (
                 <p className="font-sans text-sm text-wheat/70">
                   Více informací o podpoře a činnosti MAS Rozvoj Krnovska o.p.s. naleznete na{' '}
