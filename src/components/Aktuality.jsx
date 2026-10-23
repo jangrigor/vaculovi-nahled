@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Sprout, ChevronDown, FileText } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Sprout, ChevronDown, ChevronLeft, ChevronRight, FileText, X } from 'lucide-react'
 import { GlowCard } from '@/components/ui/spotlight-card'
 
 // Novou novinku stačí přidat jako objekt — zbytek kódu se nemění.
@@ -32,18 +33,114 @@ const newsItems = [
   },
 ]
 
+// Zvětšení fotky přímo na stránce (bez otevírání nové adresy).
+// Zavírá se křížkem, klepnutím vedle fotky nebo Esc; listuje se šipkami,
+// klávesami ← → nebo přejetím prstem do strany.
+// Vykresluje se přes portál do <body>: karta má backdrop-blur, který by jinak
+// z `position: fixed` udělal pozici vůči kartě, ne vůči oknu.
+function Lightbox({ photos, index, onClose, onIndex }) {
+  const touchX = useRef(null)
+  const count = photos.length
+  const go = (step) => onIndex((index + step + count) % count)
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose()
+      if (count > 1 && e.key === 'ArrowRight') go(1)
+      if (count > 1 && e.key === 'ArrowLeft') go(-1)
+    }
+    window.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  })
+
+  const ph = photos[index]
+  const btn =
+    'absolute flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-wheat backdrop-blur transition hover:bg-black/70'
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={ph.alt}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-10"
+      onClick={onClose}
+      onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+      onTouchEnd={(e) => {
+        if (touchX.current === null || count < 2) return
+        const dx = e.changedTouches[0].clientX - touchX.current
+        touchX.current = null
+        if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1)
+      }}
+    >
+      <img
+        src={ph.src}
+        alt={ph.alt}
+        className="max-h-full max-w-full rounded-lg object-contain shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      />
+      <button
+        type="button"
+        aria-label="Zavřít"
+        className={`${btn} right-3 top-3 sm:right-6 sm:top-6`}
+        onClick={onClose}
+      >
+        <X size={22} />
+      </button>
+      {count > 1 && (
+        <>
+          <button
+            type="button"
+            aria-label="Předchozí fotka"
+            className={`${btn} left-3 top-1/2 -translate-y-1/2 sm:left-6`}
+            onClick={(e) => {
+              e.stopPropagation()
+              go(-1)
+            }}
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <button
+            type="button"
+            aria-label="Další fotka"
+            className={`${btn} right-3 top-1/2 -translate-y-1/2 sm:right-6`}
+            onClick={(e) => {
+              e.stopPropagation()
+              go(1)
+            }}
+          >
+            <ChevronRight size={24} />
+          </button>
+          <span className="absolute bottom-4 left-1/2 -translate-x-1/2 font-sans text-xs text-wheat/60">
+            {index + 1} / {count}
+          </span>
+        </>
+      )}
+    </div>,
+    document.body,
+  )
+}
+
 // Mozaika fotek: hlavní fotka na výšku vlevo přes celou výšku, ostatní (na šířku)
 // vpravo pod sebou ve svém přirozeném poměru. Na mobilu jdou všechny pod sebe.
-// Každá fotka se po kliknutí otevře v plné velikosti.
+// Klepnutím se fotka zvětší v Lightboxu.
 function Gallery({ item }) {
+  const [zoomed, setZoomed] = useState(null)
+  const lead = { src: item.image, alt: item.title }
   const side = [...(item.photos ?? []), ...(item.poster ? [item.poster] : [])]
-  const link = (ph, imgClass, aClass = '') => (
-    <a
+  const all = [lead, ...side]
+
+  const thumb = (ph, i, imgClass, btnClass = '') => (
+    <button
       key={ph.src}
-      href={ph.src}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`block overflow-hidden rounded-lg ${aClass}`}
+      type="button"
+      aria-label={`Zvětšit: ${ph.alt}`}
+      onClick={() => setZoomed(i)}
+      className={`block w-full cursor-zoom-in overflow-hidden rounded-lg ${btnClass}`}
     >
       <img
         src={ph.src}
@@ -52,19 +149,26 @@ function Gallery({ item }) {
         decoding="async"
         className={`w-full transition-transform duration-300 hover:scale-[1.02] ${imgClass}`}
       />
-    </a>
+    </button>
   )
 
-  if (!side.length) return link({ src: item.image, alt: item.title }, 'h-auto')
-
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1.08fr_1fr]">
-      {/* Absolutní pozice: výšku řádků určují fotky vpravo, levá je jen vyplní. */}
-      <div className="relative sm:row-span-2">
-        {link({ src: item.image, alt: item.title }, 'h-auto object-cover sm:h-full', 'sm:absolute sm:inset-0')}
-      </div>
-      {side.map((ph) => link(ph, 'h-auto'))}
-    </div>
+    <>
+      {side.length ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1.08fr_1fr]">
+          {/* Absolutní pozice: výšku řádků určují fotky vpravo, levá je jen vyplní. */}
+          <div className="relative sm:row-span-2">
+            {thumb(lead, 0, 'h-auto object-cover sm:h-full', 'sm:absolute sm:inset-0')}
+          </div>
+          {side.map((ph, i) => thumb(ph, i + 1, 'h-auto'))}
+        </div>
+      ) : (
+        thumb(lead, 0, 'h-auto')
+      )}
+      {zoomed !== null && (
+        <Lightbox photos={all} index={zoomed} onIndex={setZoomed} onClose={() => setZoomed(null)} />
+      )}
+    </>
   )
 }
 
