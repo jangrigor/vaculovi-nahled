@@ -27,10 +27,6 @@ const newsItems = [
       src: 'media/aktualita-cedule.jpg',
       alt: 'Publicitní cedule projektu: Inovace zemědělské techniky – rodinná farma v Krásných Loučkách byl spolufinancován Evropskou unií. Cílem projektu je zefektivnění zemědělské výroby. Nový mulčovač a dílenský stůl zvýší soběstačnost farmy při údržbě travních porostů a opravách techniky.',
     },
-    logos: {
-      src: 'media/loga-eu-mas.png',
-      alt: 'Spolufinancováno Evropskou unií · Strategický plán SZP · MAS Rozvoj Krnovska',
-    },
     link: { href: 'https://www.maskrnovsko.cz/', label: 'maskrnovsko.cz' },
     pdf: 'media/publicita-mas-krnovsko.pdf',
   },
